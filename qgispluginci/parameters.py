@@ -74,7 +74,7 @@ class Parameters:
     def __init__(self, definition: dict):
         self.plugin_path = definition['plugin_path']
         self.plugin_name = self.__get_from_metadata('name')
-        self.plugin_slug = slugify(self.plugin_name)
+        self.plugin_slug = slugify(self.plugin_name, separator='_')
         self.project_slug = definition.get(
             'project_slug',
             os.environ.get('TRAVIS_REPO_SLUG', '.../{}'.format(self.plugin_slug)).split('/')[1]
