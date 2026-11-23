@@ -34,6 +34,7 @@ from qgispluginci.exceptions import (
 )
 from qgispluginci.parameters import Parameters
 from qgispluginci.translation import Translation
+from qgispluginci.translation_clients.baseclient import DEFAULT_PLATFORM, I18nPlatform
 from qgispluginci.utils import (
     configure_file,
     convert_octets,
@@ -644,7 +645,8 @@ def release(
     github_token: str | None = None,
     compile_all_ts_files: bool = False,
     upload_plugin_repo_github: bool = False,
-    tx_api_token: str | None = None,
+    i18n_api_token: str | None = None,
+    i18n_platform: I18nPlatform = DEFAULT_PLATFORM,
     alternative_repo_url: str | None = None,
     qgis_token: str | None = None,
     osgeo_username: str | None = None,
@@ -669,13 +671,15 @@ def release(
     github_token
         The GitHub token
     compile_all_ts_files:
-        If true, compile all TS files into QM files. It's done by default if a Transifex token is provided
+        If true, compile all TS files into QM files. It's done by default if a translation platform token is provided
     upload_plugin_repo_github
         If true, a custom repo will be created as a release asset on Github and could later be used in QGIS as a custom plugin repository.
     plugin_repo_url
         If set, this URL will be used to create the ZIP URL in the XML file
-    tx_api_token
-        The Transifex token
+    i18n_api_token
+        The token of the translation platform
+    i18n_platform
+        The translation platform of the token
     alternative_repo_url
         URL of the endpoint to upload the plugin to
     qgis_token
@@ -706,9 +710,17 @@ def release(
 
     release_tag = release_tag or release_version
 
-    if tx_api_token or compile_all_ts_files:
-        tr = Translation(parameters, tx_create_project=False, tx_api_token=tx_api_token)
-        if tx_api_token:
+    # If an i18n client token is given, it means we want to pull translations
+    pull_translations = bool(i18n_api_token)
+
+    if pull_translations or compile_all_ts_files:
+        tr = Translation(
+            parameters,
+            create_project=False,
+            api_token=i18n_api_token,
+            platform=i18n_platform,
+        )
+        if pull_translations:
             tr.pull()
         tr.compile_strings()
 
@@ -728,7 +740,7 @@ def release(
         parameters,
         release_version,
         archive_name,
-        add_translations=bool(tx_api_token),
+        add_translations=pull_translations,
         allow_uncommitted_changes=allow_uncommitted_changes,
         is_prerelease=is_prerelease,
         disable_submodule_update=disable_submodule_update,

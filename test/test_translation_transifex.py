@@ -11,6 +11,7 @@ import yaml
 # project
 from qgispluginci.parameters import Parameters
 from qgispluginci.translation import Translation
+from qgispluginci.translation_clients.baseclient import I18nPlatform
 
 # Tests
 from .utils import can_skip_test_transifex
@@ -37,13 +38,17 @@ class TestTranslation(unittest.TestCase):
 
     def setUp(self):
         """Initialize the next test method (run before every test method)"""
-        self.t = Translation(self.parameters, tx_api_token=self.tx_api_token)
+        self.t = Translation(
+            self.parameters,
+            i18n_api_token=self.tx_api_token,
+            i18n_platform=I18nPlatform.Transifex,
+        )
 
     def tearDown(self):
-        self.t.tx_client.delete_project()
+        self.t.i18n_client.delete_project()
         """
         try:
-            self.t.tx_client.delete_team(f"{self.parameters.project_slug}-team")
+            self.t.i18n_client.delete_team(f"{self.parameters.project_slug}-team")
         except PyTransifexException as error:
             logger.debug(error)
         """
@@ -53,12 +58,22 @@ class TestTranslation(unittest.TestCase):
         Translation initialized from setUp, so we 'fake' a new test
         by tearing it down
         """
-        self.t = Translation(self.parameters, tx_api_token=self.tx_api_token)
-        self.t.tx_client.delete_project()
-        self.assertFalse(self.t.tx_client.project_exists(self.parameters.project_slug))
-        self.t = Translation(self.parameters, tx_api_token=self.tx_api_token)
-        self.assertTrue(self.t.tx_client.project_exists(self.parameters.project_slug))
-        self.assertEqual(len(self.t.tx_client.list_resources()), 1)
+        self.t = Translation(
+            self.parameters,
+            i18n_api_token=self.tx_api_token,
+            i18n_platform=I18nPlatform.Transifex,
+        )
+        self.t.i18n_client.delete_project()
+        self.assertFalse(
+            self.t.i18n_client.project_exists(self.parameters.project_slug)
+        )
+        self.t = Translation(
+            self.parameters,
+            i18n_api_token=self.tx_api_token,
+            i18n_platform=I18nPlatform.Transifex,
+        )
+        self.assertTrue(self.t.i18n_client.project_exists(self.parameters.project_slug))
+        self.assertEqual(len(self.t.i18n_client.list_resources()), 1)
 
     def test_push(self):
         self.t.update_strings()

@@ -24,6 +24,7 @@ from qgispluginci.exceptions import GithubReleaseNotFound
 from qgispluginci.parameters import DASH_WARNING, Parameters
 from qgispluginci.release import create_plugin_repo, release
 from qgispluginci.translation import Translation
+from qgispluginci.translation_clients.baseclient import I18nPlatform
 from qgispluginci.utils import replace_in_file
 
 # Tests
@@ -90,7 +91,7 @@ class TestRelease(unittest.TestCase):
         release(
             self.qgis_plugin_config_params,
             RELEASE_VERSION_TEST,
-            tx_api_token="",
+            i18n_api_token="",
         )
 
     @unittest.skipIf(
@@ -98,11 +99,16 @@ class TestRelease(unittest.TestCase):
         "Missing github_token or tx_api_token",
     )
     def test_release_with_transifex(self):
-        Translation(self.qgis_plugin_config_params, tx_api_token=self.tx_api_token)
+        Translation(
+            self.qgis_plugin_config_params,
+            i18n_api_token=self.tx_api_token,
+            i18n_platform=I18nPlatform.Transifex,
+        )
         release(
             self.qgis_plugin_config_params,
             RELEASE_VERSION_TEST,
-            tx_api_token=self.tx_api_token,
+            i18n_api_token=self.tx_api_token,
+            i18n_platform=I18nPlatform.Transifex,
         )
 
     def test_zipname(self):

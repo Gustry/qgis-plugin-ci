@@ -48,7 +48,7 @@ commands:
     package             creates an archive of the plugin
     changelog           gets the changelog content
     release             release the plugin
-    pull-translation    pull translations from Transifex
+    pull-translation    pull translations from Transifex or Weblate
     push-translation    update strings and push translations
 ```
 

@@ -54,6 +54,12 @@ transifex = [
     "qgis-plugin-ci[pyqt]",
 ]
 
+weblate = [
+    "wlc>=1.15,<4",
+    # pylupdate, needed to extract strings
+    "qgis-plugin-ci[pyqt]",
+]
+
 dev = [
     "pre-commit>=4.5,<5",
     "ruff>=0.15.11,<0.17",

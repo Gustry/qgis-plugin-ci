@@ -25,7 +25,7 @@ class TestLocalTranslation(unittest.TestCase):
 
     def make_translation(self, i18n_folder: Path) -> Translation:
         translation = Translation(self.parameters)
-        self.assertIsNone(translation.tx_client)
+        self.assertIsNone(translation.i18n_client)
         translation.ts_file = str(i18n_folder / Path(translation.ts_file).name)
         translation.language_ts_files = lambda: [
             str(i18n_folder / Path(f).name)

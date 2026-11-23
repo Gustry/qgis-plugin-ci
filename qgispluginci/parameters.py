@@ -64,13 +64,18 @@ class Parameters:
         The organization name in Transifex
         Defaults to: the GitHub organization slug
 
-    transifex_project: str
-        The project on Transifex, which can be different from the one on GitHub.
+    i18n_project: str
+        The project on the translation platform (Transifex or Weblate),
+        which can be different from the one on GitHub.
         Defaults to: the project_slug
+
+    weblate_url: str
+        The Weblate API URL.
+        Defaults to: https://hosted.weblate.org/api/
 
     i18n_resource_name: str
         The resource name: used for the TS files names (``<i18n_resource_name>_<lang>.ts``)
-        It is also used in Transifex.
+        It is also used as the resource in Transifex and the component in Weblate.
         Defaults to: the project_slug
 
     translation_source_language:
@@ -242,7 +247,10 @@ class Parameters:
             "translation_source_language", "en"
         )
         self.translation_languages = definition.get("translation_languages", {})
-        self.transifex_project = definition.get("transifex_project", self.project_slug)
+        self.i18n_project = definition.get("i18n_project", self.project_slug)
+        self.weblate_url = definition.get(
+            "weblate_url", "https://hosted.weblate.org/api/"
+        )
         self.i18n_resource_name = definition.get(
             "i18n_resource_name", self.project_slug
         )

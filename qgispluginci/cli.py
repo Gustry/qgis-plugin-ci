@@ -9,6 +9,18 @@ from qgispluginci.changelog import ChangelogParser
 from qgispluginci.parameters import Parameters
 from qgispluginci.release import release
 from qgispluginci.translation import Translation
+from qgispluginci.translation_clients.baseclient import I18nPlatform
+
+
+def add_translation_tokens(parser: argparse.ArgumentParser, help_suffix: str = ""):
+    """Transifex or Weblate token: the translation platform depends on the token given."""
+    if help_suffix:
+        help_suffix = f" {help_suffix}"
+
+    parser.add_argument(
+        "--transifex-token", help=f"The Transifex API token.{help_suffix}"
+    )
+    parser.add_argument("--weblate-token", help=f"The Weblate API token.{help_suffix}")
 
 
 def make_parser() -> argparse.ArgumentParser:
@@ -54,14 +66,14 @@ def make_parser() -> argparse.ArgumentParser:
         "package", help="creates an archive of the plugin"
     )
     package_parser.add_argument("release_version", help="The version to be released")
-    package_parser.add_argument(
-        "--transifex-token",
-        help="The Transifex API token. If specified translations will be pulled and compiled.",
+    add_translation_tokens(
+        package_parser,
+        "If specified translations will be pulled and compiled.",
     )
     package_parser.add_argument(
         "--compile-all-ts",
         action="store_true",
-        help="Will compile all TS files into QM files, True by default if Transifex token is used.",
+        help="Will compile all TS files into QM files, True by default if a Transifex or Weblate token is used.",
     )
     package_parser.add_argument(
         "-u",
@@ -115,14 +127,14 @@ def make_parser() -> argparse.ArgumentParser:
         "--release-tag",
         help="The release tag, if different from the version (e.g. vx.y.z).",
     )
-    release_parser.add_argument(
-        "--transifex-token",
-        help="The Transifex API token. If specified translations will be pulled and compiled.",
+    add_translation_tokens(
+        release_parser,
+        "If specified translations will be pulled and compiled.",
     )
     release_parser.add_argument(
         "--compile-all-ts",
         action="store_true",
-        help="Will compile all TS files into QM files, True by default if Transifex token is used",
+        help="Will compile all TS files into QM files, True by default if a Transifex or Weblate token is used",
     )
     release_parser.add_argument(
         "--github-token",
@@ -177,9 +189,9 @@ def make_parser() -> argparse.ArgumentParser:
 
     # pull-translation
     pull_tr_parser = subparsers.add_parser(
-        "pull-translation", help="pull translations from Transifex"
+        "pull-translation", help="pull translations from Transifex or Weblate"
     )
-    pull_tr_parser.add_argument("transifex_token", help="The Transifex API token")
+    add_translation_tokens(pull_tr_parser)
     pull_tr_parser.add_argument(
         "--compile", action="store_true", help="Will compile TS files into QM files"
     )
@@ -197,9 +209,41 @@ def make_parser() -> argparse.ArgumentParser:
     push_tr_parser = subparsers.add_parser(
         "push-translation", help="update strings and push translations"
     )
-    push_tr_parser.add_argument("transifex_token", help="The Transifex API token")
+    add_translation_tokens(push_tr_parser)
 
     return parser
+
+
+def i18n_token(
+    args_parser: argparse.ArgumentParser,
+    args: argparse.Namespace,
+    required: bool = False,
+) -> tuple[str | None, I18nPlatform]:
+    """The translation platform token and the platform, from the token given."""
+    if args.transifex_token and args.weblate_token:
+        args_parser.error(
+            f"{args.command}: give either --transifex-token or --weblate-token, not both"
+        )
+
+    if args.weblate_token:
+        return args.weblate_token, I18nPlatform.Weblate
+
+    if required and not args.transifex_token:
+        args_parser.error(
+            f"{args.command}: give either --transifex-token or --weblate-token"
+        )
+
+    return args.transifex_token, I18nPlatform.Transifex
+
+
+def translation_from_tokens(
+    args_parser: argparse.ArgumentParser,
+    parameters: Parameters,
+    args: argparse.Namespace,
+) -> Translation:
+    """Translation with the Transifex or Weblate client, one token is required."""
+    token, platform = i18n_token(args_parser, args, required=True)
+    return Translation(parameters, i18n_api_token=token, i18n_platform=platform)
 
 
 def cli():
@@ -253,12 +297,14 @@ def cli():
 
     # PACKAGE
     if args.command == "package":
+        i18n_api_token, i18n_platform = i18n_token(args_parser, args)
         # repo url from CLI option or from config file
         plugin_repo_url = args.plugin_repo_url or parameters.plugin_repo_url
         release(
             parameters,
             release_version=args.release_version,
-            tx_api_token=args.transifex_token,
+            i18n_api_token=i18n_api_token,
+            i18n_platform=i18n_platform,
             compile_all_ts_files=args.compile_all_ts,
             allow_uncommitted_changes=args.allow_uncommitted_changes,
             plugin_repo_url=plugin_repo_url,
@@ -269,11 +315,13 @@ def cli():
 
     # RELEASE
     elif args.command == "release":
+        i18n_api_token, i18n_platform = i18n_token(args_parser, args)
         release(
             parameters,
             release_version=args.release_version,
             release_tag=args.release_tag,
-            tx_api_token=args.transifex_token,
+            i18n_api_token=i18n_api_token,
+            i18n_platform=i18n_platform,
             github_token=args.github_token,
             compile_all_ts_files=args.compile_all_ts,
             upload_plugin_repo_github=args.create_plugin_repo,
@@ -289,7 +337,7 @@ def cli():
 
     # TRANSLATION PULL
     elif args.command == "pull-translation":
-        t = Translation(parameters, args.transifex_token)
+        t = translation_from_tokens(args_parser, parameters, args)
         t.pull()
         if args.compile:
             t.compile_strings()
@@ -303,7 +351,7 @@ def cli():
 
     # TRANSLATION PUSH
     elif args.command == "push-translation":
-        t = Translation(parameters, args.transifex_token)
+        t = translation_from_tokens(args_parser, parameters, args)
         t.update_strings()
         t.push()
 

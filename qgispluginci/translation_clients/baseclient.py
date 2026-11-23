@@ -1,18 +1,32 @@
 from collections.abc import Callable
+from enum import StrEnum
 from typing import NamedTuple
+
+
+class I18nPlatform(StrEnum):
+    """The translation platforms, the value is the name used in the code and CLI."""
+
+    Transifex = "transifex"
+    Weblate = "weblate"
+
+
+DEFAULT_PLATFORM = I18nPlatform.Weblate
 
 
 class TranslationConfig(NamedTuple):
     api_token: str
-    organization_name: str
     project_slug: str
     resource_file_path: str
     resource_slug: str
-    private: bool = False
+    source_language_code: str = "en"
+    # Transifex only
+    organization_name: str = ""
     project_name: str | None = None
     i18n_type: str = "QT"
     repository_url: str | None = None
-    source_language_code: str = "en"
+    private: bool = False
+    # Weblate only
+    api_url: str | None = None
 
 
 class BaseClient:
