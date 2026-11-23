@@ -243,7 +243,7 @@ def translation_from_tokens(
 ) -> Translation:
     """Translation with the Transifex or Weblate client, one token is required."""
     token, platform = i18n_token(args_parser, args, required=True)
-    return Translation(parameters, i18n_api_token=token, i18n_platform=platform)
+    return Translation(parameters, api_token=token, platform=platform)
 
 
 def cli():

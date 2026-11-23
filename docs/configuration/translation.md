@@ -16,8 +16,8 @@ translation_languages = [
 | :----- | :---------- | :------ |
 | `translation_source_language` | The language of the strings in the plugin source code. | `en` |
 | `translation_languages` | The languages to translate the plugin into. | |
-| `i18n_resource_name` | The name of the TS files (`<i18n_resource_name>_<lang>.ts`, in the `i18n` folder of the plugin).<br/>It is also the component on Weblate and the resource on Transifex. | `project_slug` |
-| `i18n_project` | The project on the translation platform, Weblate or Transifex. | `project_slug` |
+| `i18n_resource_name` | The name of the TS and QM files (`<i18n_resource_name>_<lang>.ts`, in the `i18n` folder of the plugin).<br/>It is also the resource on Transifex. | `project_slug` |
+| `i18n_project` | The project on the translation platform, Weblate or Transifex.<br/>On Weblate, `<project>/<component>`, like [wlc](https://docs.weblate.org/en/latest/wlc.html). Without a component, the component has the same slug as the project. | `project_slug` |
 | `weblate_url` | The Weblate API URL, for a self-hosted Weblate. | `https://hosted.weblate.org/api/` |
 | `transifex_organization` | The organization on Transifex. | `github_organization_slug` |
 
@@ -40,8 +40,8 @@ If needed, set its path with `pylupdate_path` in the configuration.
 
 qgis-plugin-ci does not create anything on Weblate. Before the first push, create on Weblate:
 
-- the project, with the slug `i18n_project`
-- a component in this project, with the slug `i18n_resource_name`, using the *Qt Linguist translation file* (TS) format
+- the project and the component, matching `i18n_project` (`<project>/<component>`)
+- the component uses the *Qt Linguist translation file* (TS) format
   and the file mask `<path to the plugin>/i18n/<i18n_resource_name>_*.ts`
 - the languages listed in `translation_languages`
 

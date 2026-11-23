@@ -100,15 +100,17 @@ class Translation:
                 "Install them with: pip install 'qgis-plugin-ci[weblate]'"
             ) from exc
 
+        # "project/component", like wlc. Without a component, the project slug is used.
+        project, _, component = self.parameters.i18n_project.partition("/")
         config = TranslationConfig(
             api_token=api_token,
             api_url=self.parameters.weblate_url,
             organization_name="",
-            project_slug=self.parameters.i18n_project,
+            project_slug=project,
             repository_url=self.parameters.repository_url,
             source_language_code=self.parameters.translation_source_language,
             resource_file_path=self.ts_file,
-            resource_slug=self.parameters.i18n_resource_name,
+            resource_slug=component or project,
         )
         # Weblate projects and components are not created by qgis-plugin-ci
         return WeblateClient(config, self.update_strings, create_project=False)

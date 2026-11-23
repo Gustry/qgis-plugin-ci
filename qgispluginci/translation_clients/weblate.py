@@ -96,6 +96,11 @@ class WeblateClient(BaseClient):
         translation = next(
             t for t in self.get_resource().list() if t.language_code == language_code
         )
+        if not translation.filename:
+            # In a bilingual component (TS files without template), the source
+            # language has no file in the repository: nothing to download.
+            logger.info(f"Translations '{language_code}' skipped: no file on Weblate")
+            return str(path)
         content = translation.download()
 
         if path.exists() and path.read_bytes() == content:

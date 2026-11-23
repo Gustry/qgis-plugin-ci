@@ -67,6 +67,8 @@ class Parameters:
     i18n_project: str
         The project on the translation platform (Transifex or Weblate),
         which can be different from the one on GitHub.
+        On Weblate, it is ``<project>/<component>``, like wlc.
+        Without a component, the component has the same slug as the project.
         Defaults to: the project_slug
 
     weblate_url: str
@@ -75,7 +77,7 @@ class Parameters:
 
     i18n_resource_name: str
         The resource name: used for the TS files names (``<i18n_resource_name>_<lang>.ts``)
-        It is also used as the resource in Transifex and the component in Weblate.
+        It is also used as the resource in Transifex.
         Defaults to: the project_slug
 
     translation_source_language:
